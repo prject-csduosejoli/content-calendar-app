@@ -294,12 +294,32 @@
             return res.json();
         }
 
+        // Token admin disimpan di sessionStorage: hilang saat tab ditutup, tidak
+        // ikut ter-serialize ke localStorage bersama data kalender. Kosongkan kalau
+        // tidak ada — server yang memutuskan, bukan frontend.
+        function getAdminKey() {
+            return sessionStorage.getItem('kalender_admin_key') || '';
+        }
+
+        function setAdminKey(k) {
+            if (k) sessionStorage.setItem('kalender_admin_key', k);
+            else sessionStorage.removeItem('kalender_admin_key');
+        }
+
         async function apiPost(payload) {
             let res = await fetch('/api/calendar', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Admin-Key': getAdminKey()
+                },
                 body: JSON.stringify(payload)
             });
+            if (res.status === 401) {
+                let prompt = window.prompt('Masukkan ADMIN_KEY untuk menyimpan:');
+                if (prompt) setAdminKey(prompt.trim());
+                throw new Error('ADMIN_KEY dibutuhkan. Klik Simpan lagi setelah mengisi.');
+            }
             if (!res.ok) {
                 let detail = '';
                 try { detail = (await res.json()).error || ''; } catch(e) {}

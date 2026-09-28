@@ -1,11 +1,25 @@
 // worker.js — Cloudflare Worker: static assets + /api/calendar untuk D1.
 // 1 user, 1 kalender. Satu baris DB per bulan (ym), konten per tanggal di JSON.
+// WRITE (POST) dikunci ADMIN_KEY supaya tidak semua orang bisa menambah konten.
 import { handleCalendar } from './api/calendar.js';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json; charset=utf-8' };
 
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: JSON_HEADERS });
+
+// Token dianggap sah kalau cocok persis dan tidak kosong. Kalau ADMIN_KEY belum
+// diset, POST tetap ditolak (fail-closed) — lebih baik tidak bisa simpan daripada
+// bisa simpan tanpa kunci.
+function isAuthorized(request, env) {
+  if (request.method !== 'POST') return true;
+  const expected = env.ADMIN_KEY;
+  if (!expected) return false;
+  const header = request.headers.get('Authorization') || '';
+  const bearer = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+  const xKey = (request.headers.get('X-Admin-Key') || '').trim();
+  return bearer === expected || xKey === expected;
+}
 
 export default {
   async fetch(request, env) {
@@ -21,6 +35,9 @@ export default {
     }
 
     if (pathname === '/api/calendar') {
+      if (!isAuthorized(request, env)) {
+        return json({ ok: false, error: 'Tidak diizinkan. Butuh ADMIN_KEY yang benar.' }, 401);
+      }
       try {
         return await handleCalendar(request, env);
       } catch (err) {

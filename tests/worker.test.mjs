@@ -25,6 +25,7 @@ const DB = {
 const PUBLIC = new Set(['index.html']);
 const env = {
   DB,
+  ADMIN_KEY: 'kunci-rahasia',
   ASSETS: {
     async fetch(req) {
       const path = new URL(req.url).pathname;
@@ -53,9 +54,9 @@ const hitJson = async (path, init) => {
   const res = await worker.fetch(new Request('https://k.test' + path, init), env);
   return { status: res.status, body: await res.json() };
 };
-const POST = (obj) => ({
+const POST = (obj, key = 'kunci-rahasia') => ({
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: { 'Content-Type': 'application/json', 'X-Admin-Key': key },
   body: JSON.stringify(obj),
 });
 
@@ -109,7 +110,70 @@ console.log('\n4. /health tanpa D1 binding -> storage none (tidak crash)');
   check('storage none', b.storage === 'none', b.storage);
 }
 
-console.log('\n5. Endpoint tak dikenal -> 404 JSON');
+console.log('\n5. Gate ADMIN_KEY: POST butuh token, GET tetap terbuka');
+{
+  // env tanpa ADMIN_KEY -> semua POST harus ditolak (fail-closed)
+  const noKey = { ...env };
+  delete noKey.ADMIN_KEY;
+  const r = await worker.fetch(
+    new Request('https://k.test/api/calendar', POST({ ym: '2026-10', notes: 'x' })), noKey
+  );
+  check('tanpa ADMIN_KEY -> 401', r.status === 401, `status=${r.status}`);
+  const b = await r.json();
+  check('pesan jelas', /ADMIN_KEY/i.test(b.error || ''), b.error);
+}
+{
+  // env dengan ADMIN_KEY tapi request tanpa header -> 401
+  const withKey = { ...env, ADMIN_KEY: 'kunci-rahasia' };
+  const r = await worker.fetch(
+    new Request('https://k.test/api/calendar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ym: '2026-10', notes: 'x' }),
+    }), withKey
+  );
+  check('token salah/absen -> 401', r.status === 401, `status=${r.status}`);
+}
+{
+  // token salah -> 401
+  const withKey = { ...env, ADMIN_KEY: 'kunci-rahasia' };
+  const r = await worker.fetch(new Request('https://k.test/api/calendar', POST({ ym: '2026-10', notes: 'x' }, 'token-salah')), withKey);
+  check('token salah -> 401', r.status === 401, `status=${r.status}`);
+}
+{
+  // token benar lewat X-Admin-Key -> 200
+  const withKey = { ...env, ADMIN_KEY: 'kunci-rahasia' };
+  const r = await worker.fetch(
+    new Request('https://k.test/api/calendar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Key': 'kunci-rahasia' },
+      body: JSON.stringify({ ym: '2026-10', notes: 'tersimpan via token' }),
+    }), withKey
+  );
+  check('X-Admin-Key benar -> 200', r.status === 200, `status=${r.status}`);
+  const b = await r.json();
+  check('data benar-benar tersimpan', b.month?.notes === 'tersimpan via token', b.month?.notes);
+}
+{
+  // token benar lewat Authorization: Bearer -> 200
+  const withKey = { ...env, ADMIN_KEY: 'kunci-rahasia' };
+  const r = await worker.fetch(
+    new Request('https://k.test/api/calendar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer kunci-rahasia' },
+      body: JSON.stringify({ ym: '2026-10', notes: 'via bearer' }),
+    }), withKey
+  );
+  check('Bearer benar -> 200', r.status === 200, `status=${r.status}`);
+}
+{
+  // GET tidak butuh token
+  const withKey = { ...env, ADMIN_KEY: 'kunci-rahasia' };
+  const r = await worker.fetch(new Request('https://k.test/api/calendar?ym=2026-10'), withKey);
+  check('GET tetap terbuka tanpa token', r.status === 200, `status=${r.status}`);
+}
+
+console.log('\n6. Endpoint tak dikenal -> 404 JSON');
 {
   const r = await hitJson('/api/tidak-ada');
   check('status 404', r.status === 404, `status=${r.status}`);

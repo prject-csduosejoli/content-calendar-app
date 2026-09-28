@@ -11,6 +11,14 @@ compatibility_flags = ["nodejs_compat"]
 directory = "./public"
 not_found_handling = "none"
 
+# ADMIN_KEY mengunci POST /api/calendar. Set lewat (pilih salah satu):
+#   npx wrangler secret put ADMIN_KEY      <- lebih aman, tidak masuk git
+#   atau isi di [vars] di bawah            <- ikut ter-commit, jangan untuk produksi
+# Kalau kosong, semua POST ditolak (fail-closed).
+#
+# [vars]
+# ADMIN_KEY = "ganti-dengan-karbunmu"
+
 # D1 binding: set database_id lewat dashboard (Settings -> Bindings -> D1),
 # atau isi di sini setelah `npx wrangler d1 create kalender-konten-golden`.
 # Kalau kosong, Worker tetap jalan tapi /api/calendar balas 500 "binding belum dipasang".

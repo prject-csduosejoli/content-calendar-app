@@ -5,8 +5,12 @@
 **Commit terakhir:** `e6b4510`
 **Node:** v26.7.0 (punya `node:sqlite` — wajib, buat test)
 
-**Status sekarang:** semua kode selesai dan teruji (73 test lulus). Belum ada yang
-ter-deploy. Langkah di bawah ini belum pernah dijalankan — ikuti urutannya.
+**Status:** Worker sudah LIVE di https://kalender-konten-golden.csduosejoli.workers.dev
+D1 sudah dibuat (`kalender-konten-golden`, `num_tables: 1`) dan schema sudah terpasang.
+`ADMIN_KEY` masih perlu kamu set sendiri dengan kunci punyamu — jangan pakai kunci
+contoh di bawah.
+
+`npm test` = 73 test (43 handler + 30 router), semua lulus.
 
 ---
 
@@ -98,18 +102,26 @@ database_id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
 migrations_dir = "migrations"
 ```
 
-**Salin `database_id` itu.** Lalu buka `wrangler.toml` dan isi:
+**Salin `database_id` itu.** Lalu buka `wrangler.toml` dan isi di dalam blok
+`[[d1_databases]]`:
 
 ```toml
-# hapus tanda # di baris ini
+[[d1_databases]]
+binding = "DB"
+database_name = "kalender-konten-golden"
 database_id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
 ```
 
-Bagian itu ada di paling bawah file, sudah dikomentari dengan `# database_id = ...`
+> **WAJIB ada di blok `[[d1_databases]]`.** Kalau `database_id` ditulis langsung
+> di bawah blok `[assets]`, wrangler hanya memberi warning
+> `Unexpected fields found in assets field` lalu **mengabaikannya diam-diam**.
+> Worker tetap jalan, `/health` masih balas `storage: cloudflare-d1`, tapi
+> `/api/calendar` balas `"D1 binding DB belum dipasang"`. Gejalanya sangat
+> membingungkan karena `/health` bilang binding ada.
 
-Alternatif: biarkan `wrangler.toml` tanpa `database_id` dan pasang binding lewat
-dashboard (**Settings -> Bindings -> D1 database**, variable name `DB`). Cara ini
-tidak perlu edit file, tapi file lokalmu jadi tidak lengkap.
+Alternatif: pasang lewat dashboard (**Settings -> Bindings -> D1 database**,
+variable name `DB`). Tidak perlu edit file, tapi `wrangler.toml` lokal jadi tidak
+lengkap.
 
 ---
 
@@ -143,6 +155,11 @@ Harus muncul `calendar_months`. Kalau `no such table`, ulangi `npm run db:init`.
 # LANGKAH 4 — Set ADMIN_KEY
 
 Ini yang mengunci penambahan konten. Tanpa ini, semua POST ditolak.
+
+> **Worker harus sudah di-deploy dulu (Langkah 5).** `wrangler secret put` gagal
+> dengan pesan `If this is a new Worker, run wrangler deploy first` kalau Worker
+> belum pernah dibuat. Kalau kamu sampai di sini dan dapat error itu, deploy dulu
+> lalu ulangi langkah ini.
 
 Buat dulu kuncinya dengan tool bawaan Node, tanpa install apa pun:
 
@@ -301,6 +318,11 @@ git push
 | `You are not authenticated` | Belum login | `npx wrangler login` |
 | Browser tidak terbuka saat login | Popup diblokir | Salin URL manual dari terminal |
 | `No bindings found` | `database_id` kosong | Ulangi Langkah 2, isi `wrangler.toml` |
+| `Unexpected fields found in assets field: "database_id"` | `database_id` ditulis di blok `[assets]`, bukan `[[d1_databases]]` | Pindahkan ke blok `[[d1_databases]]` (lihat Langkah 2) |
+| `/health` bilang `cloudflare-d1` tapi `/api/calendar` bilang `D1 binding DB belum dipasang` | Binding ada tapi salah blok, seperti baris di atas | Sama: pindahkan `database_id` ke `[[d1_databases]]` |
+| `If this is a new Worker, run wrangler deploy first` | `secret put` sebelum Worker ada | `npm run deploy` dulu, lalu ulangi `secret put` |
+| `d1 execute` balas `no such table: calendar_months` | Schema belum di-apply | `npm run db:init` |
+| Cek tabel tidak menunjukkan apa-apa | `d1 execute` printing JSON penuh, bukan tabel rapi | Tambah `--json` lalu grep `"results"`, atau pakai `npx wrangler d1 execute ... --json` |
 | `/health` balas `storage":"none"` | Binding tidak terpasang | Cek `database_id`, deploy ulang |
 | `no such table: calendar_months` | Schema belum di-apply | `npm run db:init` |
 | POST selalu 401 | `ADMIN_KEY` belum diset | `npx wrangler secret put ADMIN_KEY`, lalu deploy ulang |

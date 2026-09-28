@@ -1,0 +1,14 @@
+{
+  "name": "kalender-konten-golden",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Kalender konten Golden Studio & ShareUndangan — Cloudflare Worker + D1",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node tests/calendar.test.mjs",
+    "dev": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
+    "db:init": "wrangler d1 execute kalender-konten-golden --file=schema.sql --remote"
+  }
+}

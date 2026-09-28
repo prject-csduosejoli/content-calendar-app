@@ -1,0 +1,17 @@
+name = "kalender-konten-golden"
+main = "worker.js"
+compatibility_date = "2026-09-28"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+# Aset diletakkan di folder public/ supaya source code, schema.sql, tests/ dan
+# .git/ TIDAK ikut ter-upload dan tidak bisa diunduh siapa pun lewat URL.
+# wrangler tidak mendukung filter per-file (assets.rules), jadi pemisahan folder
+# adalah satu-satunya cara. Jalankan: npm run build  (atau salin manual).
+directory = "./public"
+not_found_handling = "none"
+
+# D1 binding: set database_id lewat dashboard (Settings -> Bindings -> D1),
+# atau isi di sini setelah `npx wrangler d1 create kalender-konten-golden`.
+# Kalau kosong, Worker tetap jalan tapi /api/calendar balas 500 "binding belum dipasang".
+# database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"

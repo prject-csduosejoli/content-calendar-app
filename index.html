@@ -42,11 +42,15 @@
             <div>
                 <h1 class="text-2xl font-black text-slate-800 tracking-tight uppercase">Monthly Content Calendar</h1>
                 <p class="text-slate-500 text-sm">Golden Studio (goldenstudio.id) & ShareUndangan</p>
+                <p id="saveStatus" class="text-xs font-medium text-slate-400 mt-1"></p>
             </div>
             <div class="flex items-center gap-3 no-print">
                 <input type="month" id="currentMonthPicker" class="bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="changeMonth(this.value)">
-                <button onclick="loadSeptemberData()" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl font-medium shadow-sm transition flex items-center gap-2 text-sm">
-                    <i class="fa-solid fa-calendar-check"></i> Load Plan Oktober 2026
+                <button onclick="loadFromDb()" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl font-medium shadow-sm transition flex items-center gap-2 text-sm">
+                    <i class="fa-solid fa-cloud-arrow-down"></i> Muat dari Database
+                </button>
+                <button onclick="loadOctoberData()" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-xl font-medium shadow-sm transition flex items-center gap-2 text-sm">
+                    <i class="fa-solid fa-calendar-check"></i> Isi Oktober 2026
                 </button>
                 <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-medium shadow-sm transition flex items-center gap-2 text-sm">
                     <i class="fa-solid fa-file-pdf"></i> Cetak / PDF
@@ -147,7 +151,7 @@
             renderCalendar();
         }
 
-        function loadSeptemberData() {
+        function loadOctoberData() {
             currentYear = 2026;
             currentMonth = 9; // Oktober
             initPicker();
@@ -168,7 +172,7 @@
             };
             renderCalendar();
             renderSidebar();
-            alert('Plan Konten Oktober 2026 berhasil dimuat ke kalender!');
+            saveData();
         }
 
         function renderCalendar() {
@@ -279,16 +283,90 @@
             renderSidebar();
         }
 
-        function saveData() {
+        function ymKey() {
+            let m = (currentMonth + 1) < 10 ? '0' + (currentMonth + 1) : (currentMonth + 1);
+            return `${currentYear}-${m}`;
+        }
+
+        async function apiGet(ym) {
+            let res = await fetch(`/api/calendar?ym=${ym}`);
+            if (!res.ok) throw new Error('Server menolak permintaan (HTTP ' + res.status + ')');
+            return res.json();
+        }
+
+        async function apiPost(payload) {
+            let res = await fetch('/api/calendar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) {
+                let detail = '';
+                try { detail = (await res.json()).error || ''; } catch(e) {}
+                throw new Error('Server menolak penyimpanan (HTTP ' + res.status + ') ' + detail);
+            }
+            return res.json();
+        }
+
+        function showStatus(msg, ok) {
+            let el = document.getElementById('saveStatus');
+            if (!el) return;
+            el.textContent = msg;
+            el.className = 'text-xs font-medium ' + (ok ? 'text-emerald-600' : 'text-rose-600');
+        }
+
+        async function saveData() {
             state.notes = document.getElementById('appNotes').value;
             localStorage.setItem('content_calendar_state', JSON.stringify(state));
-            alert('Data berhasil disimpan!');
+            let ym = ymKey();
+            showStatus('Menyimpan...', true);
+            try {
+                let r = await apiPost({
+                    ym: ym,
+                    days: state.calendar,
+                    dates: state.dates,
+                    todos: state.todos,
+                    notes: state.notes
+                });
+                if (r.month) {
+                    state.calendar = r.month.days;
+                    state.dates = r.month.dates;
+                    state.todos = r.month.todos;
+                    state.notes = r.month.notes;
+                    localStorage.setItem('content_calendar_state', JSON.stringify(state));
+                }
+                showStatus('Tersimpan di database', true);
+            } catch (e) {
+                showStatus('Gagal: ' + e.message, false);
+            }
+        }
+
+        async function loadFromDb(silent) {
+            let ym = ymKey();
+            try {
+                let r = await apiGet(ym);
+                if (r.found && r.month) {
+                    state.calendar = r.month.days;
+                    state.dates = r.month.dates;
+                    state.todos = r.month.todos;
+                    state.notes = r.month.notes;
+                    localStorage.setItem('content_calendar_state', JSON.stringify(state));
+                    renderCalendar();
+                    renderSidebar();
+                    if (!silent) showStatus('Data ' + ym + ' dimuat dari database', true);
+                } else if (!silent) {
+                    showStatus('Belum ada data ' + ym + ' di database', false);
+                }
+            } catch (e) {
+                if (!silent) showStatus('Gagal memuat: ' + e.message, false);
+            }
         }
 
         // Init
         initPicker();
         renderCalendar();
         renderSidebar();
+        loadFromDb(true);
     </script>
 </body>
 </html>

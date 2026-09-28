@@ -1,4 +1,6 @@
-public/
+# public/ TIDAK di-ignore: Cloudflare Pages/Workers menjalankan
+# 'npx wrangler deploy' tanpa build, jadi public/index.html harus ada di repo.
+# Jangan edit manual — jalankan 'npm run build' untuk regenerate.
 node_modules/
 .wrangler/
 .dev.vars

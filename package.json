@@ -8,7 +8,7 @@
     "build": "node scripts/build.mjs",
     "test": "node tests/calendar.test.mjs && node tests/worker.test.mjs",
     "dev": "npm run build && npx wrangler dev",
-    "deploy": "npm run build && npx wrangler deploy",
+    "deploy": "npm run build && wrangler deploy",
     "db:init": "npx wrangler d1 execute kalender-konten-golden --file=schema.sql --remote"
   },
   "devDependencies": {

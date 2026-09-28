@@ -46,7 +46,7 @@
             <div class="flex items-center gap-3 no-print">
                 <input type="month" id="currentMonthPicker" class="bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="changeMonth(this.value)">
                 <button onclick="loadSeptemberData()" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl font-medium shadow-sm transition flex items-center gap-2 text-sm">
-                    <i class="fa-solid fa-calendar-check"></i> Load Plan September 2026
+                    <i class="fa-solid fa-calendar-check"></i> Load Plan Oktober 2026
                 </button>
                 <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-medium shadow-sm transition flex items-center gap-2 text-sm">
                     <i class="fa-solid fa-file-pdf"></i> Cetak / PDF
@@ -123,14 +123,13 @@
     </div>
 
     <script>
-        let now = new Date();
-        let currentYear = now.getFullYear();
-        let currentMonth = now.getMonth();
+        let currentYear = 2026;
+        let currentMonth = 9; // Oktober (bulan kerja berjalan)
 
         let state = JSON.parse(localStorage.getItem('content_calendar_state')) || {
             calendar: {},
-            dates: [{ date: '2026-09-10', event: 'Mid-Month Special Campaign' }],
-            todos: ['Plan Q1 videos', 'Batch Instagram reels', 'Update content pillars'],
+            dates: [{ date: '2026-10-10', event: 'Mid-Month Special Campaign' }],
+            todos: ['Ide Konten : Sesi keluarga atau lamaran beauti', 'Ide Konten : Sesi prewedding bertema nasional'],
             notes: 'Fokus trafik website goldenstudio.id & konversi ShareUndangan.'
         };
 
@@ -150,45 +149,26 @@
 
         function loadSeptemberData() {
             currentYear = 2026;
-            currentMonth = 8; // September
+            currentMonth = 9; // Oktober
             initPicker();
             
-            // September 2026 Plan Mapping
+            // Oktober 2026 Plan Mapping
             state.calendar = {
-                "2026-09-01": "Promo Awal Bulan: Diskon Paket Wisuda & Keluarga (IG/TikTok)",
-                "2026-09-02": "Tips Pose Foto Studio Bareng Sahabat (Blog/Pinterest)",
-                "2026-09-03": "Inspirasi Undangan Digital Tema Minimalis (ShareUndangan)",
-                "2026-09-04": "BTS Sesi Prewedding Golden Studio (Reels)",
-                "2026-09-05": "Kenapa Undangan Digital Lebih Hemat? (Blog SEO)",
-                "2026-09-06": "Trend Warna Baju Foto Keluarga (IG Carousel)",
-                "2026-09-07": "Setup Lighting Profesional Studio (TikTok)",
-                "2026-09-08": "Testimoni Klien Maternity & Newborn",
-                "2026-09-09": "Checklist Persiapan Sebelum Sesi Foto (Blog)",
-                "2026-09-10": "Mid-Month Special: Bundling Foto + Undangan",
-                "2026-09-11": "Cara Kirim Undangan via WA Tanpa Ribet (Blog)",
-                "2026-09-12": "Tips Makeup Tahan Lama untuk Foto Studio (Reels)",
-                "2026-09-13": "Portofolio Wisuda Kampus Bekasi",
-                "2026-09-14": "Mitos vs Fakta Sewa Studio Foto (TikTok)",
-                "2026-09-15": "Panduan Pilih Tema Undangan Pernikahan (Blog)",
-                "2026-09-16": "Q&A Seputar Layanan & Harga Studio (IG Story)",
-                "2026-09-17": "Ide Pose Foto Couple Estetik (Pinterest)",
-                "2026-09-18": "Showcase Fitur RSVP Undangan Digital",
-                "2026-09-19": "Pentingnya Dokumentasi Profesional (Blog)",
-                "2026-09-20": "Promo Weekend: Extra File Edited Gratis",
-                "2026-09-21": "Tips Pilih Background Foto Sesuai Kulit",
-                "2026-09-22": "Studi Kasus Undangan 1000+ Tamu (Blog)",
-                "2026-09-23": "Detail Hasil Cetak & Frame Eksklusif",
-                "2026-09-24": "Persiapan Foto Corporate / Company Profile",
-                "2026-09-25": "Cara Mengatasi Grogi di Depan Kamera (Blog)",
-                "2026-09-26": "Highlights Sesi Foto Klien Minggu Ini",
-                "2026-09-27": "Fitur Countdown Undangan Digital (TikTok)",
-                "2026-09-28": "Rekomendasi Outfit Casual Group / Komunitas",
-                "2026-09-29": "Rangkuman Update Katalog Desain Terbaru",
-                "2026-09-30": "Evaluasi & Preview Promo Oktober"
+                "2026-10-01": "- Hari Kesaktian Pancasila - Hari Lansia Internasional - Hari Kopi",
+                "2026-10-02": "Hari Batik Nasional & Hari Batik Dunia",
+                "2026-10-05": "- HUT ke-81 TNI - Hari Guru Sedunia - Hari Habitat Sedunia",
+                "2026-10-08": "Hari Tata Ruang Nasional",
+                "2026-10-12": "Hari Museum Nasional",
+                "2026-10-16": "- Hari Parlemen Indonesia - Hari Pangan Sedunia",
+                "2026-10-22": "- Hari Santri Nasional",
+                "2026-10-24": "- Hari Dokter Indonesia",
+                "2026-10-27": "- Hari Penerbangan Nasional - Hari Listrik Nasional",
+                "2026-10-28": "- Hari Sumpah Pemuda",
+                "2026-10-30": "- Hari Keuangan Nasional"
             };
             renderCalendar();
             renderSidebar();
-            alert('Plan Konten September 2026 berhasil dimuat ke kalender!');
+            alert('Plan Konten Oktober 2026 berhasil dimuat ke kalender!');
         }
 
         function renderCalendar() {
@@ -271,7 +251,7 @@
         }
 
         function addEventRow() {
-            let todayStr = '2026-09-01';
+            let todayStr = '2026-10-01';
             state.dates.push({date: todayStr, event: ''});
             renderSidebar();
         }

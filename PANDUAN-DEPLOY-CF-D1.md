@@ -198,11 +198,45 @@ Harus ada `ADMIN_KEY`. Nilai tidak pernah ditampilkan lagi setelah disimpan.
 
 # LANGKAH 5 — Deploy
 
+Ada dua cara. Kalau kamu sudah konekkan repo ke Cloudflare (Git integration),
+**pakai yang pertama** — itu yang dipakai sejak 2026-09-28.
+
+## Cara A — Otomatis lewat Cloudflare (paling mudah)
+
+Cukup:
+
+```bash
+git add -A
+git commit -m "Update kalender"
+git push
+```
+
+Cloudflare otomatis jalankan `npx wrangler deploy` dan deploy ke Worker.
+
+> **WAJIB: `public/index.html` harus ada di repo.** Cloudflare menjalankan
+> `wrangler deploy` tanpa build, dan `assets.directory = "./public"`. Kalau
+> `public/` tidak ada, build gagal dengan:
+> `The directory specified by the "assets.directory" field ... does not exist`
+> Target path: `/opt/buildhome/repo/public`.
+>
+> Makanya `public/` TIDAK ada di `.gitignore`. Setiap kali kamu edit
+> `index.html`, jalankan `npm run build` dulu supaya `public/index.html` ikut
+> ter-push:
+>
+> ```bash
+> npm run build
+> git add -A
+> git commit -m "Update kalender"
+> git push
+> ```
+
+## Cara B — Manual dari PC
+
 ```bash
 npm run deploy
 ```
 
-Perintah ini build dulu (`index.html` ke `public/`), lalu `wrangler deploy`.
+Build dulu (`index.html` ke `public/`), lalu `wrangler deploy`.
 
 Output sukses:
 
@@ -214,8 +248,6 @@ Deployed kalender-konten-golden triggers
   https://kalender-konten-golden.<subdomain>.workers.dev
 Current Version ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
-
-**Catat URL-nya** — itu alamat Worker kamu.
 
 Kalau muncul `No bindings found`, berarti `database_id` belum diisi (Langkah 2).
 Kalau masih 401, `ADMIN_KEY` belum diset (Langkah 4).
@@ -295,19 +327,15 @@ Setelah mengedit `index.html`:
 
 ```bash
 cd "D:/IT SUPPORT"
-npm test          # pastikan tidak rusak
-npm run deploy    # build + upload ulang
-```
-
-`npm run deploy` sudah menjalankan build, jadi tidak perlu `npm run build` terpisah.
-
-Kontrol versi tetap lewat git:
-
-```bash
+npm test          # pastikan tidak rusak (73 test)
+npm run build     # WAJIB: public/index.html harus ikut ter-push
 git add -A
 git commit -m "Update kalender"
-git push
+git push           # Cloudflare auto-deploy
 ```
+
+**Jangan lupa `npm run build`.** Kalau lupa, `public/index.html` masih versi lama
+dan Cloudflare akan deploy versi lama juga, tanpa error sama sekali.
 
 ---
 
@@ -317,6 +345,9 @@ git push
 |---|---|---|
 | `You are not authenticated` | Belum login | `npx wrangler login` |
 | Browser tidak terbuka saat login | Popup diblokir | Salin URL manual dari terminal |
+| `The directory specified by the "assets.directory" field ... does not exist` | `public/` tidak ada di repo karena ada di `.gitignore` | Jalankan `npm run build`, lalu commit + push `public/index.html` |
+| `public/` hilang setelah `git pull` | `public/` ter-ignore | Sudah diperbaiki 2026-09-28 — `public/` tidak lagi di-ignore |
+| `npm run deploy` gagal `stdin is not a tty` | `npx` interaktif di shell non-TTY | Jalankan `npx wrangler deploy` langsung, atau pakai `wrangler` dari `node_modules` |
 | `No bindings found` | `database_id` kosong | Ulangi Langkah 2, isi `wrangler.toml` |
 | `Unexpected fields found in assets field: "database_id"` | `database_id` ditulis di blok `[assets]`, bukan `[[d1_databases]]` | Pindahkan ke blok `[[d1_databases]]` (lihat Langkah 2) |
 | `/health` bilang `cloudflare-d1` tapi `/api/calendar` bilang `D1 binding DB belum dipasang` | Binding ada tapi salah blok, seperti baris di atas | Sama: pindahkan `database_id` ke `[[d1_databases]]` |

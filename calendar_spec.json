@@ -1,0 +1,53 @@
+{
+  "sheets": [
+    {
+      "name": "Content Calendar",
+      "column_widths": {
+        "A": 15, "B": 15, "C": 15, "D": 15, "E": 15, "F": 15, "G": 15,
+        "H": 4,
+        "I": 12, "J": 20,
+        "K": 4,
+        "L": 18, "M": 18
+      },
+      "merges": [
+        "A1:G1",
+        "A2:G2",
+        "I2:J2",
+        "I3:J3",
+        "L2:M2",
+        "L3:M12"
+      ],
+      "rows": [
+        ["MONTHLY CONTENT CALENDAR", "", "", "", "", "", "", "", "IMPORTANT DATES", "", "", "NOTES", ""],
+        ["January 2026", "", "", "", "", "", "", "", "DATE", "EVENT", "", "", ""],
+        ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "", "10/1/2026", "Campaign Launch", "", "", ""],
+        ["", "", "", "", "", "1", "2", "", "", "", "", "", ""],
+        ["6", "4", "5", "6", "7", "8", "9", "", "GOALS / TO-DO", "", "", "", ""],
+        ["10", "11", "12", "13", "14", "15", "16", "", "- Plan Q1 videos", "", "", "", ""],
+        ["17", "18", "19", "20", "21", "22", "23", "", "- Batch Instagram reels", "", "", "", ""],
+        ["24", "25", "26", "27", "28", "29", "30", "", "- Update content pillars", "", "", "", ""],
+        ["31", "", "", "", "", "", "", "", "", "", "", "", ""]
+      ],
+      "cells": {
+        "A1": {"font": {"bold": true, "size": 16, "color": "1F4E78"}, "alignment": {"horizontal": "center"}},
+        "A2": {"font": {"bold": true, "size": 12, "color": "595959"}, "alignment": {"horizontal": "center"}},
+        "A3": {"font": {"bold": true, "color": "FFFFFF"}, "fill": {"type": "solid", "fgColor": "1F4E78"}, "alignment": {"horizontal": "center"}},
+        "B3": {"font": {"bold": true, "color": "FFFFFF"}, "fill": {"type": "solid", "fgColor": "1F4E78"}, "alignment": {"horizontal": "center"}},
+        "C3": {"font": {"bold": true, "color": "FFFFFF"}, "fill": {"type": "solid", "fgColor": "1F4E78"}, "alignment": {"horizontal": "center"}},
+        "D3": {"font": {"bold": true, "color": "FFFFFF"}, "fill": {"type": "solid", "fgColor": "1F4E78"}, "alignment": {"horizontal": "center"}},
+        "E3": {"font": {"bold": true, "color": "FFFFFF"}, "fill": {"type": "solid", "fgColor": "1F4E78"}, "alignment": {"horizontal": "center"}},
+        "F3": {"font": {"bold": true, "color": "FFFFFF"}, "fill": {"type": "solid", "fgColor": "1F4E78"}, "alignment": {"horizontal": "center"}},
+        "G3": {"font": {"bold": true, "color": "FFFFFF"}, "fill": {"type": "solid", "fgColor": "1F4E78"}, "alignment": {"horizontal": "center"}},
+        "I2": {"font": {"bold": true, "color": "FFFFFF"}, "fill": {"type": "solid", "fgColor": "2F5597"}, "alignment": {"horizontal": "center"}},
+        "J2": {"font": {"bold": true, "color": "FFFFFF"}, "fill": {"type": "solid", "fgColor": "2F5597"}, "alignment": {"horizontal": "center"}},
+        "I3": {"font": {"bold": true}, "alignment": {"horizontal": "center"}},
+        "J3": {"font": {"bold": true}, "alignment": {"horizontal": "center"}},
+        "L2": {"font": {"bold": true, "color": "FFFFFF"}, "fill": {"type": "solid", "fgColor": "2F5597"}, "alignment": {"horizontal": "center"}},
+        "M2": {"font": {"bold": true, "color": "FFFFFF"}, "fill": {"type": "solid", "fgColor": "2F5597"}, "alignment": {"horizontal": "center"}},
+        "I6": {"font": {"bold": true, "color": "FFFFFF"}, "fill": {"type": "solid", "fgColor": "2F5597"}, "alignment": {"horizontal": "center"}},
+        "J6": {"font": {"bold": true, "color": "FFFFFF"}, "fill": {"type": "solid", "fgColor": "2F5597"}, "alignment": {"horizontal": "center"}},
+        "L3": {"alignment": {"vertical": "top", "wrap_text": true}}
+      }
+    }
+  ]
+}

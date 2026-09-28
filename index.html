@@ -294,6 +294,21 @@
             return res.json();
         }
 
+        // Dialog ADMIN_KEY. Sekalian sebut lokasi file kuncinya, karena error 401
+        // hampir selalu berujung pada "kunci yang salah ketik" bukan "kunci lupa".
+        function askAdminKey() {
+            let entered = window.prompt(
+                'Tempel ADMIN_KEY di sini.\n\n' +
+                'Kuncinya ada di file: D:\\IT SUPPORT\\ADMIN-KEY.txt\n' +
+                'Tempel PERSIS, tanpa tanda petik atau spasi tambahan.'
+            );
+            if (!entered) return '';
+            // Buang backtick / tanda kutip / awalan "KUNCI=" yang sering ikut
+            // tersalin dari terminal. Server juga menormalkan, tapi lebih baik
+            // bersih sebelum dikirim.
+            return entered.replace(/KUNCI\s*=\s*/i, '').replace(/[`'"]/g, '').trim();
+        }
+
         // Token admin disimpan di sessionStorage: hilang saat tab ditutup, tidak
         // ikut ter-serialize ke localStorage bersama data kalender. Kosongkan kalau
         // tidak ada — server yang memutuskan, bukan frontend.
@@ -316,9 +331,9 @@
                 body: JSON.stringify(payload)
             });
             if (res.status === 401 && retry) {
-                let entered = window.prompt('Masukkan ADMIN_KEY untuk menyimpan:');
-                if (entered && entered.trim()) {
-                    setAdminKey(entered.trim());
+                let entered = askAdminKey();
+                if (entered) {
+                    setAdminKey(entered);
                     return await apiPost(payload, false);
                 }
                 throw new Error('ADMIN_KEY dibutuhkan. Simpan dibatalkan.');
@@ -326,6 +341,10 @@
             if (!res.ok) {
                 let detail = '';
                 try { detail = (await res.json()).error || ''; } catch(e) {}
+                // 401 setelah retry = key yang ditempel memang salah. Buang dari
+                // sessionStorage supaya klik Simpan berikutnya prompt lagi dari nol,
+                // bukan mengulang key yang sama.
+                if (res.status === 401) setAdminKey('');
                 throw new Error('Server menolak penyimpanan (HTTP ' + res.status + ') ' + detail);
             }
             return res.json();

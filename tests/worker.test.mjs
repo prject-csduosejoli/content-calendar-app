@@ -173,7 +173,27 @@ console.log('\n5. Gate ADMIN_KEY: POST butuh token, GET tetap terbuka');
   check('GET tetap terbuka tanpa token', r.status === 200, `status=${r.status}`);
 }
 
-console.log('\n6. Endpoint tak dikenal -> 404 JSON');
+console.log('\n6. Normalisasi key: backtick, spasi, awalan KUNCI= tetap diterima');
+{
+  const withKey = { ...env, ADMIN_KEY: 'kunci-rahasia' };
+  const varian = [
+    ['backtick', '`kunci-rahasia`'],
+    ['kutip tunggal', "'kunci-rahasia'"],
+    ['kutip ganda', '"kunci-rahasia"'],
+    ['spasi di samping', '  kunci-rahasia  '],
+    ['awalan KUNCI=', 'KUNCI=kunci-rahasia'],
+    ['KUNCI = lowercase', 'kunci = kunci-rahasia'],
+  ];
+  for (const [label, key] of varian) {
+    const r = await worker.fetch(new Request('https://k.test/api/calendar', POST({ ym: '2026-10', notes: 'x' }, key)), withKey);
+    check(label + ' -> 200', r.status === 200, `status=${r.status}`);
+  }
+  // yang benar-benar beda harus tetap ditolak
+  const r = await worker.fetch(new Request('https://k.test/api/calendar', POST({ ym: '2026-10', notes: 'x' }, 'kunci')), withKey);
+  check('prefix saja tetap 401', r.status === 401, `status=${r.status}`);
+}
+
+console.log('\n7. Endpoint tak dikenal -> 404 JSON');
 {
   const r = await hitJson('/api/tidak-ada');
   check('status 404', r.status === 404, `status=${r.status}`);

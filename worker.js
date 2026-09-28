@@ -11,14 +11,32 @@ const json = (data, status = 200) =>
 // Token dianggap sah kalau cocok persis dan tidak kosong. Kalau ADMIN_KEY belum
 // diset, POST tetap ditolak (fail-closed) — lebih baik tidak bisa simpan daripada
 // bisa simpan tanpa kunci.
+// Token yang sering salah karena salah salin: ada backtick, spasi, atau awalan
+// "KUNCI=" dari terminal. Buang semua itu sebelum dibandingkan supaya user tidak
+// kehilangan waktu hanya karena salah paste.
+function normalizeKey(v) {
+  return String(v || '')
+    .replace(/KUNCI\s*=\s*/i, '')
+    .replace(/[`'"]/g, '')
+    .trim();
+}
+
+function timingSafeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 function isAuthorized(request, env) {
   if (request.method !== 'POST') return true;
-  const expected = env.ADMIN_KEY;
+  const expected = normalizeKey(env.ADMIN_KEY);
   if (!expected) return false;
   const header = request.headers.get('Authorization') || '';
-  const bearer = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
-  const xKey = (request.headers.get('X-Admin-Key') || '').trim();
-  return bearer === expected || xKey === expected;
+  const bearer = header.startsWith('Bearer ') ? header.slice(7) : '';
+  const xKey = request.headers.get('X-Admin-Key') || '';
+  return timingSafeEqual(normalizeKey(bearer), expected)
+      || timingSafeEqual(normalizeKey(xKey), expected);
 }
 
 export default {

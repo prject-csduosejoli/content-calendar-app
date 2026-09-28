@@ -306,7 +306,7 @@
             else sessionStorage.removeItem('kalender_admin_key');
         }
 
-        async function apiPost(payload) {
+        async function apiPost(payload, retry = true) {
             let res = await fetch('/api/calendar', {
                 method: 'POST',
                 headers: {
@@ -315,10 +315,13 @@
                 },
                 body: JSON.stringify(payload)
             });
-            if (res.status === 401) {
-                let prompt = window.prompt('Masukkan ADMIN_KEY untuk menyimpan:');
-                if (prompt) setAdminKey(prompt.trim());
-                throw new Error('ADMIN_KEY dibutuhkan. Klik Simpan lagi setelah mengisi.');
+            if (res.status === 401 && retry) {
+                let entered = window.prompt('Masukkan ADMIN_KEY untuk menyimpan:');
+                if (entered && entered.trim()) {
+                    setAdminKey(entered.trim());
+                    return await apiPost(payload, false);
+                }
+                throw new Error('ADMIN_KEY dibutuhkan. Simpan dibatalkan.');
             }
             if (!res.ok) {
                 let detail = '';

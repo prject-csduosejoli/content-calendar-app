@@ -5,3 +5,5 @@ node_modules/
 .wrangler/
 .dev.vars
 .hermes-tmp.*
+# Berisi ADMIN_KEY — JANGAN pernah di-commit.
+ADMIN-KEY.txt

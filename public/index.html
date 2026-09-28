@@ -297,16 +297,23 @@
         // Dialog ADMIN_KEY. Sekalian sebut lokasi file kuncinya, karena error 401
         // hampir selalu berujung pada "kunci yang salah ketik" bukan "kunci lupa".
         function askAdminKey() {
+            // Prompt berisi daftar karakter yang harus dicek sebelum menekan OK.
+            // Kuncinya campur huruf besar-kecil, jadi yang penting bukan "semua besar"
+            // tapi panjangnya tetap 32 dan tidak ada spasi di tengah.
             let entered = window.prompt(
-                'Tempel ADMIN_KEY di sini.\n\n' +
-                'Kuncinya ada di file: D:\\IT SUPPORT\\ADMIN-KEY.txt\n' +
-                'Tempel PERSIS, tanpa tanda petik atau spasi tambahan.'
+                'ADMIN_KEY\n' +
+                '---------\n' +
+                'Tempel kunci di bawah. Paste apa adanya boleh, nanti dirapikan.\n' +
+                'File kunci: D:\\IT SUPPORT\\ADMIN-KEY.txt\n\n' +
+                'Setelah paste, cek panjangnya di bawah: harus 32 karakter.\n' +
+                'Bukan semua huruf besar - kuncinya campur besar-kecil.\n' +
+                'Tidak boleh ada spasi di tengah, petik, atau backtick.\n\n' +
+                'Kunci sekarang:',
+                sessionStorage.getItem('kalender_admin_key') || ''
             );
-            if (!entered) return '';
-            // Buang backtick / tanda kutip / awalan "KUNCI=" yang sering ikut
-            // tersalin dari terminal. Server juga menormalkan, tapi lebih baik
-            // bersih sebelum dikirim.
-            return entered.replace(/KUNCI\s*=\s*/i, '').replace(/[`'"]/g, '').trim();
+            // prompt() mengembalikan null kalau user menekan Cancel.
+            if (entered === null) return '';
+            return entered.trim();
         }
 
         // Token admin disimpan di sessionStorage: hilang saat tab ditutup, tidak
@@ -340,11 +347,25 @@
             }
             if (!res.ok) {
                 let detail = '';
-                try { detail = (await res.json()).error || ''; } catch(e) {}
+                let diagnosa = null;
+                try {
+                    let j = await res.json();
+                    detail = j.error || '';
+                    diagnosa = j.candidateLengths || null;
+                } catch(e) {}
                 // 401 setelah retry = key yang ditempel memang salah. Buang dari
                 // sessionStorage supaya klik Simpan berikutnya prompt lagi dari nol,
                 // bukan mengulang key yang sama.
-                if (res.status === 401) setAdminKey('');
+                if (res.status === 401) {
+                    setAdminKey('');
+                    // Server melaporkan panjang kunci yang diterimanya. Kuncimu
+                    // 32 karakter, jadi angka lain = ada karakter yang hilang atau
+                    // sisa teks lain yang ikut tertempel. Ini satu-satunya cara
+                    // melihat apa yang sebenarnya terkirim tanpa menebak.
+                    if (Array.isArray(diagnosa) && diagnosa.length) {
+                        detail += ' (kunci diterima: ' + diagnosa.join('/') + ' karakter, harus 32)';
+                    }
+                }
                 throw new Error('Server menolak penyimpanan (HTTP ' + res.status + ') ' + detail);
             }
             return res.json();

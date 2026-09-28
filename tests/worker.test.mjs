@@ -188,9 +188,30 @@ console.log('\n6. Normalisasi key: backtick, spasi, awalan KUNCI= tetap diterima
     const r = await worker.fetch(new Request('https://k.test/api/calendar', POST({ ym: '2026-10', notes: 'x' }, key)), withKey);
     check(label + ' -> 200', r.status === 200, `status=${r.status}`);
   }
+  // Copy-paste seluruh isi file: bisa sampai newline (yang TIDAK sah di header),
+  // atau sudah lebih dulu dibersihkan browser jadi satu baris. Dua-duanya harus
+  // tetap dikenali. Yang/newline sendiri tidak bisa dikirim lewat header, jadi
+  // test lewat X-Admin-Key polos (satu baris) untuk sisanya.
+  {
+    const file = '# ADMIN_KEY - KUNCI RAHASIA ## KUNCIMU kunci-rahasia Salin seluruh isi kotak atas, lalu tempel saat dialog minta ADMIN_KEY muncul.';
+    const r = await worker.fetch(new Request('https://k.test/api/calendar', POST({ ym: '2026-10', notes: 'x' }, file)), withKey);
+    check('seluruh isi file (satu baris) -> 200', r.status === 200, `status=${r.status}`);
+  }
+  // seluruh isi file yang sudah dirapikan client sebelum dikirim
+  {
+    const file = 'KUNCI RAHASIA kunci-rahasia Salin seluruh isi kotak atas, lalu tempel saat dialog';
+    const r = await worker.fetch(new Request('https://k.test/api/calendar', POST({ ym: '2026-10', notes: 'x' }, file)), withKey);
+    check('teks file dirapikan client -> 200', r.status === 200, `status=${r.status}`);
+  }
   // yang benar-benar beda harus tetap ditolak
   const r = await worker.fetch(new Request('https://k.test/api/calendar', POST({ ym: '2026-10', notes: 'x' }, 'kunci')), withKey);
   check('prefix saja tetap 401', r.status === 401, `status=${r.status}`);
+  // 401 sekarang melaporkan panjang kunci yang diterima, untuk diagnosa
+  {
+    const r = await worker.fetch(new Request('https://k.test/api/calendar', POST({ ym: '2026-10', notes: 'x' }, 'kunci')), withKey);
+    const j = await r.json();
+    check('401 melaporkan candidateLengths', Array.isArray(j.candidateLengths), JSON.stringify(j));
+  }
 }
 
 console.log('\n7. Endpoint tak dikenal -> 404 JSON');
